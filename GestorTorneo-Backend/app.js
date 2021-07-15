@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 var userRoutes = require("./routes/user.route");
 var legueRoutes = require("./routes/league.route");
 var teamRoutes = require("./routes/team.route");
+var matchRoutes = require("./routes/match.route");
 
 var app = express();
 
@@ -21,6 +22,6 @@ app.use((req, res, next) => {
 app.use("/api", userRoutes);
 app.use("/api", legueRoutes);
 app.use("/api", teamRoutes);
-
+app.use("/api", matchRoutes);
 
 module.exports = app;

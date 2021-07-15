@@ -13,4 +13,7 @@ api.put("/:idU/:idL/:idT/removeTeam", mdAuth.ensureAuth, TeamController.removeTe
 
 api.get("/getTeams/:idU/:idL",mdAuth.ensureAuth, TeamController.getTeams);
 
+api.put("/getData/:id",mdAuth.ensureAuth, TeamController.getData);
+
+
 module.exports = api;
