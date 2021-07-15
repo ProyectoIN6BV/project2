@@ -7,7 +7,7 @@ var api= express.Router();
 
 api.put("/:id/:idO/:idT/saveMatch", mdAuth.ensureAuth, MatchController.saveMatch); //id: leagueId, idO: teamOne. idT: teamTwo
 api.put("/matchUpdate/:id", mdAuth.ensureAuth, MatchController.matchUpdate);
-api.get("/getMatch", mdAuth.ensureAuth, MatchController.getMatch);
+api.get("/getMatch/:id", mdAuth.ensureAuth, MatchController.getMatch);
 
 
 

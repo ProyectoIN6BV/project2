@@ -4,6 +4,7 @@ var User = require("../models/user.model");
 var League = require("../models/league.model");
 var Team = require("../models/team.model");
 const { param } = require("../routes/league.route");
+var Match = require("../models/match.model");
 
 function setTeam(req, res){
     var userId = req.params.idU;
@@ -184,7 +185,7 @@ function getTeams(req,res){
     if(userId != req.user.sub){
         return res.status(403).send({message: "No tienes permiso para realizar esta acción"})
     }else{
-        League.find({}).populate("teams").exec((err, teams)=>{
+        League.findById(leagueId, (err, teams)=>{
             if(err){
                 return res.status(500).send({message: "Error General"})
             }else if(teams){
@@ -192,7 +193,7 @@ function getTeams(req,res){
             }else{
                 return res.status(404).send({message:"No hay registros"})
             }
-        })
+        }).populate("teams").sort({points:-1}).sort({goaldD: -1})
     }
 }
 
@@ -205,16 +206,18 @@ function getData(req, res){
     //Goles primer equipo (izquierda) = goalsOne
     //Goles segundo equipo (derecha) = goalsTwo
 
-    Math.findById(matchId, (err, matchFind)=>{
+    Match.findById(matchId, (err, matchFind)=>{
         if(err){
+            console.log(err)
             return res.status(500).send({message: "Error General"});
-        }else if(teams){
+        }else if(matchFind){
             Match.findByIdAndUpdate(matchFind._id, update, {new: true}, (err, matchUpdate)=>{
                 if(err){
                     return res.status(500).send({message: 'Error general al actualizar pepe'});
                 }else if(matchUpdate){
                     Team.findById(matchFind.teamOne, (err, teamOneFine)=>{
                         if(err){
+                            console.log(err)
                             return res.status(500).send({message: "Error General"});
                         }else if(teamOneFine){
 
@@ -229,13 +232,16 @@ function getData(req, res){
                                 //equipo uno empato
                                 update.points = Number.parseInt(teamOneFine.points)+1;
                             }
-
+                            console.log(teamOneFine.goalsF)
+                            console.log(teamOneFine.goalsC)
+                            console.log(update)
                             update.goalsF = Number.parseInt(teamOneFine.goalsF) + Number.parseInt(update.goalsOne);
                             update.goalsC =  Number.parseInt(teamOneFine.goalsC) +  Number.parseInt(update.goalsTwo);
-                            update.goalsD =  Number.parseInt(teamOneFine.goalsD) +  Number.parseInt(update.goalsF) -  Number.parseInt(update.goalsC);
+                            update.goalsD =   Number.parseInt(update.goalsF) -  Number.parseInt(update.goalsC);
 
                             Team.findByIdAndUpdate(matchFind.teamOne, update, {new: true}, (err, teamOneUpdate)=>{
                                 if(err){
+                                    console.log(err)
                                     return res.status(500).send({message: "Error General"})
                                 }else if(teamOneUpdate){
 
@@ -262,13 +268,13 @@ function getData(req, res){
                     
                                                 update.goalsF = Number.parseInt(teamTwoFind.goalsF) + Number.parseInt(update.goalsTwo);
                                                 update.goalsC =  Number.parseInt(teamTwoFind.goalsC) +  Number.parseInt(update.goalsOne);
-                                                update.goalsD =  Number.parseInt(teamTwoFind.goalsD) +  Number.parseInt(update.goalsF) -  Number.parseInt(update.goalsC);
+                                                update.goalsD =    Number.parseInt(update.goalsF) -  Number.parseInt(update.goalsC);
 
                                                 Team.findByIdAndUpdate(matchFind.teamTwo, update, {new: true}, (err, teamTwoUpdate)=>{
                                                     if(err){
                                                         return res.status(500).send({message: 'Error general'});
                                                     }else if(teamTwoUpdate){
-                                                        return res.send({message: 'Datos almacenados'});
+                                                        return res.send({message: 'Datos almacenados', teamTwoUpdate});
                                                     }else{
                                                         return res.status(402).send({message: 'No se encontro ningun registro'});
                                                     }
