@@ -196,6 +196,10 @@ function getTeams(req,res){
     }
 }
 
+function getData(req, res){
+    
+}
+
 module.exports = {
     setTeam,
     updateTeam,
