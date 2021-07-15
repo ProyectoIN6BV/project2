@@ -196,13 +196,109 @@ function getTeams(req,res){
     }
 }
 
+
 function getData(req, res){
-    
+    let matchId = req.params.id;
+    let update = req.body;
+
+    //Mandar el id del partido.
+    //Goles primer equipo (izquierda) = goalsOne
+    //Goles segundo equipo (derecha) = goalsTwo
+
+    Math.findById(matchId, (err, matchFind)=>{
+        if(err){
+            return res.status(500).send({message: "Error General"});
+        }else if(teams){
+            Match.findByIdAndUpdate(matchFind._id, update, {new: true}, (err, matchUpdate)=>{
+                if(err){
+                    return res.status(500).send({message: 'Error general al actualizar pepe'});
+                }else if(matchUpdate){
+                    Team.findById(matchFind.teamOne, (err, teamOneFine)=>{
+                        if(err){
+                            return res.status(500).send({message: "Error General"});
+                        }else if(teamOneFine){
+
+                            let diferencia = Number.parseInt(update.goalsOne) - Number.parseInt(update.goalsTwo);
+
+                            if(diferencia > 0){
+                                //equipo uno gano
+                                update.points = Number.parseInt(teamOneFine.points)+3;
+                            }else if(diferencia < 0){
+                                //equipo uno perdio
+                            }else{
+                                //equipo uno empato
+                                update.points = Number.parseInt(teamOneFine.points)+1;
+                            }
+
+                            update.goalsF = Number.parseInt(teamOneFine.goalsF) + Number.parseInt(update.goalsOne);
+                            update.goalsC =  Number.parseInt(teamOneFine.goalsC) +  Number.parseInt(update.goalsTwo);
+                            update.goalsD =  Number.parseInt(teamOneFine.goalsD) +  Number.parseInt(update.goalsF) -  Number.parseInt(update.goalsC);
+
+                            Team.findByIdAndUpdate(matchFind.teamOne, update, {new: true}, (err, teamOneUpdate)=>{
+                                if(err){
+                                    return res.status(500).send({message: "Error General"})
+                                }else if(teamOneUpdate){
+
+                                    update.goalsF = 0;
+                                    update.goalsC = 0;
+                                    update.goalsD = 0;
+
+                                    Team.findById(matchFind.teamTwo, (err, teamTwoFind)=>{
+                                        if(err){
+                                            return res.status(500).send({message: 'Error general'});
+                                        }else if(teamTwoFind){
+
+                                                let diferencia = Number.parseInt(update.goalsTwo) - Number.parseInt(update.goalsOne);
+
+                                                if(diferencia > 0){
+                                                    //equipo dos gano
+                                                    update.points = Number.parseInt(teamTwoFind.points)+3;
+                                                }else if(diferencia < 0){
+                                                    //equipo dos perdio
+                                                }else{
+                                                    //equipo dos empato
+                                                    update.points = Number.parseInt(teamTwoFind.points)+1;
+                                                }
+                    
+                                                update.goalsF = Number.parseInt(teamTwoFind.goalsF) + Number.parseInt(update.goalsTwo);
+                                                update.goalsC =  Number.parseInt(teamTwoFind.goalsC) +  Number.parseInt(update.goalsOne);
+                                                update.goalsD =  Number.parseInt(teamTwoFind.goalsD) +  Number.parseInt(update.goalsF) -  Number.parseInt(update.goalsC);
+
+                                                Team.findByIdAndUpdate(matchFind.teamTwo, update, {new: true}, (err, teamTwoUpdate)=>{
+                                                    if(err){
+                                                        return res.status(500).send({message: 'Error general'});
+                                                    }else if(teamTwoUpdate){
+                                                        return res.send({message: 'Datos almacenados'});
+                                                    }else{
+                                                        return res.status(402).send({message: 'No se encontro ningun registro'});
+                                                    }
+                                                });
+                                        }else{
+                                            return res.status(404).send({message:"No hay registros"});
+                                        }
+                                    });
+                                }else{
+                                    return res.status(404).send({message:"No hay registros"});
+                                }
+                            }); 
+                        }else{
+                            return res.status(404).send({message:"No hay registros"});
+                        }
+                    })
+                }else{
+                    return res.status(402).send({message: 'No se pudo actualizar'});
+                }
+            });
+        }else{
+            return res.status(404).send({message:"No hay registros"});
+        }
+    });
 }
 
 module.exports = {
     setTeam,
     updateTeam,
     removeTeam,
-    getTeams
+    getTeams,
+    getData
 }
